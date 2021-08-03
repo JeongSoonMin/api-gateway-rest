@@ -1,0 +1,25 @@
+provider:
+  iam:
+    role: arn:aws:iam::123456789012:role/lambda-common-role
+  vpclink:
+    connectionId: xxxxxx
+  cors:
+    origin: '*'
+    headers:
+      - Content-Type
+      - X-Amz-Date
+      - Authorization
+      - X-Api-Key
+      - Os-Type
+      - App-Version
+      - X-Forwarded-For
+    allowCredentials: true
+
+functions:
+  events:
+    request:
+      parameters:
+        headers:
+          X-Forwarded-For:
+            required: false
+            mappedValue: context.identity.sourceIp
