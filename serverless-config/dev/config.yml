@@ -23,3 +23,7 @@ functions:
           X-Forwarded-For:
             required: false
             mappedValue: context.identity.sourceIp
+
+properties:
+  domain:
+    product: 'http://product-api-nlb-dev.jesomi.com'

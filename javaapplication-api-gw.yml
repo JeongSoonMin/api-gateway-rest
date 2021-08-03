@@ -1,0 +1,165 @@
+frameworkVersion: '2'
+# 서비스명
+service: javaapplication-api-gateway
+
+custom:
+  config: ${file(serverless-config/${sls:stage}/config.yml)}
+
+provider:
+  name: aws
+  lambdaHashingVersion: 20201221
+  region: ap-northeast-2
+  # 배포 환경
+  stage: dev
+  # cloudeFormation 에 배포되는 stack 명(다른 곳에서 겹칠 경우 해당 stack에 덮어씌워진다.)
+  stackName: ${self:service}-${sls:stage}
+  # api-gateway 생성 명칭
+  apiName: ${self:service}-${sls:stage}
+  # 로그 보존 기간
+  logRetentionInDays: 90
+  # 요청 응답 timeout(최대 30초)
+  timeout: 30
+  # api-gateway protocal(regional, edge, private)
+  endpointType: regional
+  # rest api-gateway 설정
+  apiGateway:
+    apiKeySourceType: HEADER
+    description: ${self:service}-${sls:stage} rest api-gateway
+    # default endpoint domain 비활성화
+    disableDefaultEndpoint: true
+  # X-Ray 추적 활성화
+  tracing:
+    apiGateway: true
+  # lambda role 공통 지정
+  iam:
+    role: ${self:custom.config.provider.iam.role}
+
+# lambda 배포시 전체 경로가 압축되어 올라가기 때문에 각 람다에서 해당하는 js만 올리기 위해 기본 소스 일괄 제거 설정
+package:
+  # lambda 배포시 function별로 나눠서 압축하여 배포하도록 true 설정
+  individually: true
+  # 공통 일괄 제외 파일 설정. !가 있을 경우 exclude !가 없을 경우 include
+  patterns:
+    - '!serverless-config/**'
+    - '!package.json'
+    - '!package-lock.json'
+    - '!readme.md'
+    - '!*.yml'
+
+functions:
+  # 기본 게이트웨이 / 경로 설정 function
+  root:
+    # 해당 펑션이 호출됐을 때 동작할 script. 경로/js파일명.펑션명
+    handler: index.handler
+    description: ${self:service} root path function
+    runtime: nodejs14.x
+    # api-gateway에 연결할 end-point 경로
+    events:
+      - http:
+          path: /
+          method: get
+      - http:
+          path: /basic/{productSeq}
+          method: get
+          integration: http-proxy
+          connectionType: vpc-link
+          connectionId: ${self:custom.config.provider.vpclink.connectionId}
+          cors: ${self:custom.config.provider.cors}
+          request:
+            uri: ${self:custom.config.properties.domain.product}/basic/{productSeq}
+            parameters:
+              paths:
+                productSeq: true
+              headers: ${self:custom.config.functions.events.request.parameters.headers}
+      - http:
+          path: /basic/add
+          method: post
+          integration: http-proxy
+          connectionType: vpc-link
+          connectionId: ${self:custom.config.provider.vpclink.connectionId}
+          cors: ${self:custom.config.provider.cors}
+          request:
+            uri: ${self:custom.config.properties.domain.product}/basic/add
+            parameters:
+              headers: ${self:custom.config.functions.events.request.parameters.headers}
+      - http:
+          path: /basic/modify/{productSeq}
+          method: put
+          integration: http-proxy
+          connectionType: vpc-link
+          connectionId: ${self:custom.config.provider.vpclink.connectionId}
+          cors: ${self:custom.config.provider.cors}
+          request:
+            uri: ${self:custom.config.properties.domain.product}/basic/modify/{productSeq}
+            parameters:
+              paths:
+                productSeq: true
+              headers: ${self:custom.config.functions.events.request.parameters.headers}
+      - http:
+          path: /comment/{productSeq}
+          method: get
+          integration: http-proxy
+          connectionType: vpc-link
+          connectionId: ${self:custom.config.provider.vpclink.connectionId}
+          cors: ${self:custom.config.provider.cors}
+          request:
+            uri: ${self:custom.config.properties.domain.product}/comment/{productSeq}
+            parameters:
+              paths:
+                productSeq: true
+              headers: ${self:custom.config.functions.events.request.parameters.headers}
+      - http:
+          path: /comment/{productSeq}
+          method: post
+          integration: http-proxy
+          connectionType: vpc-link
+          connectionId: ${self:custom.config.provider.vpclink.connectionId}
+          cors: ${self:custom.config.provider.cors}
+          request:
+            uri: ${self:custom.config.properties.domain.product}/comment/{productSeq}
+            parameters:
+              paths:
+                productSeq: true
+              headers: ${self:custom.config.functions.events.request.parameters.headers}
+      - http:
+          path: /comment/{productSeq}/{commentSeq}
+          method: delete
+          integration: http-proxy
+          connectionType: vpc-link
+          connectionId: ${self:custom.config.provider.vpclink.connectionId}
+          cors: ${self:custom.config.provider.cors}
+          request:
+            uri: ${self:custom.config.properties.domain.product}/comment/{productSeq}/{commentSeq}
+            parameters:
+              paths:
+                productSeq: true
+                commentSeq: true
+              headers: ${self:custom.config.functions.events.request.parameters.headers}
+      - http:
+          path: /comment/{productSeq}/{commentSeq}
+          method: get
+          integration: http-proxy
+          connectionType: vpc-link
+          connectionId: ${self:custom.config.provider.vpclink.connectionId}
+          cors: ${self:custom.config.provider.cors}
+          request:
+            uri: ${self:custom.config.properties.domain.product}/comment/{productSeq}/{commentSeq}
+            parameters:
+              paths:
+                productSeq: true
+                commentSeq: true
+              headers: ${self:custom.config.functions.events.request.parameters.headers}
+      - http:
+          path: /comment/{productSeq}/{commentSeq}
+          method: put
+          integration: http-proxy
+          connectionType: vpc-link
+          connectionId: ${self:custom.config.provider.vpclink.connectionId}
+          cors: ${self:custom.config.provider.cors}
+          request:
+            uri: ${self:custom.config.properties.domain.product}/comment/{productSeq}/{commentSeq}
+            parameters:
+              paths:
+                productSeq: true
+                commentSeq: true
+              headers: ${self:custom.config.functions.events.request.parameters.headers}
