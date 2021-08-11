@@ -27,6 +27,14 @@ provider:
   # X-Ray 추적 활성화
   tracing:
     apiGateway: true
+  # Gateway CloudWatch log 활성화
+  logs:
+    restApi:
+      accessLogging: true
+      format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "caller":"$context.identity.caller", "user":"$context.identity.user","requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","resourcePath":"$context.resourcePath", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
+      executionLogging: true
+      level: ERROR
+      fullExecutionData: false
   # lambda role 공통 지정
   iam:
     role: ${file(serverless-config/${sls:stage}/config.yml):provider.iam.role}
